@@ -86,9 +86,54 @@ def coordinateAxesSearch(x0, eps, f, n):
 		diff = x - xs
 
 	# print("Diff is: ", diff.module(), " values are: ", x, xs)
-	return (x, evaluationCount)
+	return (x,  evaluationCount)
 
-e = 1e-06
+def hookeJeeves(x0, eps, f):
+	xp = x0.copy()
+	xb = x0.copy()
+	dx = Vector([0.5 for i in range(len(x0))])
+
+	while dx[0] >= eps:
+		xn = explore(f, xp, dx)
+		if f(xn) < f(xb):
+			xp = 2 * xn - xb
+			xb = xn
+		else:
+			dx *= 0.5
+			xp = xb
+
+	return xb
+
+def explore(f, xp, dx):
+	x = xp.copy()
+	for i in range(len(x)):
+		P = f(x)
+		x[i] += dx[i]
+		N = f(x)
+		if N > P:
+			x[i] -= 2 * dx[i]
+			N = f(x)
+			if N > P:
+				x[i] += dx[i]
+	return x
+
+def nelderMead(x0, eps, f, alpfa, beta, gamma):
+	t = 1.0
+	n = len(x0)
+	
+	a1 = t / (n * sqrt(2)) * (sqrt(n + 1) + n - 1)
+	a2 = t / (n * sqrt(2)) * (sqrt(n + 1) - 1)
+
+	simplex = [x0]
+
+	for i in range(n):
+		d = [a1 if j == i else a2 for j in range(n)]
+		simplex.append(x0 + d)
+
+	for s in simplex:
+		print(s)
+
+	# continue the method
 
 def f(x):
 	return x[0]**2 - 6 * x[0] + 9
@@ -108,8 +153,12 @@ def f3(x):
 def f4(x):
 	return abs((x[0] - x[1]) * (x[0] + x[1])) + sqrt(x[0]**2 + x[1]**2)
 
+
+e = 1e-06
+
 # ============= 1. zadatak ============= 
-print(goldenCutWithStartingPoint(Vector([1]), Vector([1000]), f, e))
+x, count = goldenCutWithStartingPoint(Vector([1]), Vector([1000]), f, e)
+print(x, count)
 
 # ============= 2. zadatak ============= 
 print("============= Coordinate Axes Search ============")
@@ -130,4 +179,24 @@ x0 = Vector([5.1, 1.1])
 x, count = coordinateAxesSearch(x0, e, f4, 2)
 print(x, count)
 
+# Hooke Jevees
+print("============= Hooke Jeeves ============")
+x0 = Vector([-1.9, 2])
+x = hookeJeeves(x0, e, f1)
+print(x)
+
+x0 = Vector([0.1, 0.3])
+x = hookeJeeves(x0, e, f2)
+print(x)
+
+n = 5
+x0 = Vector.zeros(n)
+x = hookeJeeves(x0, e, f3)
+print(x)
+
+x0 = Vector([5.1, 1.1])
+x = hookeJeeves(x0, e, f4)
+print(x)
+
+nelderMead(Vector([1.3,1.4,1.5,1.6,1.7,1.8]), 2, 2, 2, 2, 2)
 

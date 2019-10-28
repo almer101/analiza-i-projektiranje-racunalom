@@ -63,7 +63,8 @@ class Vector:
 		return sqrt(module)
 
 	def copy(self):
-		return Vector(self.array)
+		array = [i for i in self.array]
+		return Vector(array)
 
 	def unit(n, index):
 		unit = []
