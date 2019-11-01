@@ -1,5 +1,16 @@
-from math import sqrt
 from vector import *
+from functools import reduce
+from math import sin
+
+class Function:
+
+	def __init__(self, func):
+		self.func = func
+		self.counter = 0
+
+	def value(self, x):
+		self.counter += 1
+		return self.func(x)
 
 def findUnimodalInterval(h, x, f):
 	l = x - h
@@ -35,7 +46,6 @@ def findUnimodalInterval(h, x, f):
 
 def goldenCutWithStartingPoint(h, starting_point, f, e):
 	l, r = findUnimodalInterval(h, starting_point, f)
-	# print("Unimodal interval for direction ", h, " is ", l, r)
 	return goldenCut(l, r, f, e)
 
 
@@ -46,7 +56,6 @@ def goldenCut(a, b, f, e):
 
 	fc = f(c)
 	fd = f(d)
-	count = 2
 	diff = b - a
 
 	while diff.module() > e:
@@ -64,13 +73,10 @@ def goldenCut(a, b, f, e):
 			fd = f(d)
 		
 		diff = b - a
-		count += 1
 
-	# print("Golden cut method evaluation count: ", count)
-	return ((a + b) * 0.5, count)
+	return (a + b) * 0.5
 
 def coordinateAxesSearch(x0, eps, f, n):
-	evaluationCount = 0
 	x = x0
 	xs = x
 	diff = Vector([5])
@@ -79,14 +85,12 @@ def coordinateAxesSearch(x0, eps, f, n):
 		xs = x
 		for i in range(n):
 			ei = Vector.unit(n, i)
-			x, count = goldenCutWithStartingPoint(ei, x, f, e)
-			evaluationCount += count
-			# print(x)
+			x = goldenCutWithStartingPoint(ei, x, f, eps)
 		
 		diff = x - xs
 
 	# print("Diff is: ", diff.module(), " values are: ", x, xs)
-	return (x,  evaluationCount)
+	return x
 
 def hookeJeeves(x0, eps, f):
 	xp = x0.copy()
@@ -117,21 +121,24 @@ def explore(f, xp, dx):
 				x[i] += dx[i]
 	return x
 
-def nelderMead(x0, eps, f, alpha=1, beta=0.5, gamma=2, sigma=0.5):
+def nelderMead(x0, eps, f, alpha=1, beta=0.5, gamma=2, sigma=0.5, step=1.0):
+	maxCount = 10000
 	n = len(x0)
 	
 	simplex = [x0]
 
 	for i in range(n):
 		a = x0.copy()
-		a[i] += 1.0
+		a[i] += step
 		simplex.append(a)
 
 	simplex = Vector(simplex)
 
 	h, l = highestLowestValue(simplex, f)
+	counter = 0
 
-	while condition(simplex, f, h) > eps:
+	while condition(simplex, f, h) > eps and counter < maxCount:
+		counter += 1
 		h, l = highestLowestValue(simplex, f)
 
 		xc = centroid(simplex, h)
@@ -160,7 +167,15 @@ def nelderMead(x0, eps, f, alpha=1, beta=0.5, gamma=2, sigma=0.5):
 				else:
 					simplex[h] = xr
 
-	return xc
+	if counter == maxCount:
+		print("Max count exceeded (", maxCount,")")
+
+	suma = Vector([0.0 for i in range(len(simplex[0]))])
+	for s in simplex:
+		suma += s
+	suma *= 1.0 / len(simplex)
+
+	return suma
 
 def condition(simplex, f, h):
 	xc = centroid(simplex, h)
@@ -197,6 +212,57 @@ def highestLowestValue(simplex, f):
 
 	return maxIndex, minIndex
 
+def readConfigFile(file):
+	order = ["eps", "x0", "step", "alpha", "beta", "gamma", "sigma", "dx"]
+	dictionary = {}
+
+	lines = linesFromFile(file)
+
+	for line in lines:
+		if line.startswith("eps"):
+			dictionary["eps"] = float(line.split()[1].strip())
+		if line.startswith("x0"):
+			values = line.split()[1:]
+			x0 = []
+			for value in values:
+				x0.append(float(value.strip()))
+			dictionary["x0"] = Vector(x0)
+		if line.startswith("step"):
+			dictionary["step"] = int(line.split()[1].strip())
+		if line.startswith("alpha"):
+			dictionary["alpha"] = float(line.split()[1].strip())
+		if line.startswith("beta"):
+			dictionary["beta"] = float(line.split()[1].strip())
+		if line.startswith("gamma"):
+			dictionary["gamma"] = float(line.split()[1].strip())
+		if line.startswith("sigma"):
+			dictionary["sigma"] = float(line.split()[1].strip())
+		if line.startswith("dx"):
+			values = line.split()[1:]
+			dx = []
+			for value in values:
+				dx.append(float(value.strip()))
+			dictionary["dx"] = Vector(dx)
+
+	arr = []
+	for key in order:
+		if key in dictionary.keys():
+			arr.append(dictionary[key])
+
+	return tuple(arr)
+
+
+def linesFromFile(file):
+	f = open(file, "r")
+	l = f.read()
+	l = l.split("\n")
+	lines = []
+	for i in range(len(l)):
+		if l[i].strip():
+			lines.append(l[i])
+	return lines
+
+
 def f(x):
 	return x[0]**2 - 6 * x[0] + 9
 
@@ -215,67 +281,9 @@ def f3(x):
 def f4(x):
 	return abs((x[0] - x[1]) * (x[0] + x[1])) + sqrt(x[0]**2 + x[1]**2)
 
+def f6(x):
+	sumSquares = 0.0
+	for i in range(len(x)):
+		sumSquares += x[i] ** 2
+	return 0.5 + (sin(sumSquares) ** 2 - 0.5) / (1 + 0.001 * sumSquares)**2
 
-e = 1e-06
-
-# ============= 1. zadatak ============= 
-x, count = goldenCutWithStartingPoint(Vector([1]), Vector([1000]), f, e)
-print(x, count)
-
-# ============= 2. zadatak ============= 
-print("============= Coordinate Axes Search ============")
-x0 = Vector([-1.9, 2])
-x, count = coordinateAxesSearch(x0, e, f1, 2)
-print(x, count)
-
-x0 = Vector([0.1, 0.3])
-x, count = coordinateAxesSearch(x0, e, f2, 2)
-print(x, count)
-
-n = 5
-x0 = Vector.zeros(n)
-x, count = coordinateAxesSearch(x0, e, f3, n)
-print(x, count)
-
-x0 = Vector([5.1, 1.1])
-x, count = coordinateAxesSearch(x0, e, f4, 2)
-print(x, count)
-
-# Hooke Jevees
-print("============= Hooke Jeeves ============")
-x0 = Vector([-1.9, 2])
-x = hookeJeeves(x0, e, f1)
-print(x)
-
-x0 = Vector([0.1, 0.3])
-x = hookeJeeves(x0, e, f2)
-print(x)
-
-n = 5
-x0 = Vector.zeros(n)
-x = hookeJeeves(x0, e, f3)
-print(x)
-
-x0 = Vector([5.1, 1.1])
-x = hookeJeeves(x0, e, f4)
-print(x)
-
-# Nelder Mead
-print("============= Nelder Mead ============")
-
-x0 = Vector([-1.9, 2])
-x = nelderMead(x0, e, f1)
-print(x)
-
-x0 = Vector([0.1, 0.3])
-x = nelderMead(x0, e, f2)
-print(x)
-
-n = 5
-x0 = Vector.zeros(n)
-x = nelderMead(x0, e, f3)
-print(x)
-
-x0 = Vector([5.1, 1.1])
-x = nelderMead(x0, e, f4)
-print(x)
