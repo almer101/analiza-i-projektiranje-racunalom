@@ -117,23 +117,85 @@ def explore(f, xp, dx):
 				x[i] += dx[i]
 	return x
 
-def nelderMead(x0, eps, f, alpfa, beta, gamma):
-	t = 1.0
+def nelderMead(x0, eps, f, alpha=1, beta=0.5, gamma=2, sigma=0.5):
 	n = len(x0)
 	
-	a1 = t / (n * sqrt(2)) * (sqrt(n + 1) + n - 1)
-	a2 = t / (n * sqrt(2)) * (sqrt(n + 1) - 1)
-
 	simplex = [x0]
 
 	for i in range(n):
-		d = [a1 if j == i else a2 for j in range(n)]
-		simplex.append(x0 + d)
+		a = x0.copy()
+		a[i] += 1.0
+		simplex.append(a)
 
-	for s in simplex:
-		print(s)
+	simplex = Vector(simplex)
 
-	# continue the method
+	h, l = highestLowestValue(simplex, f)
+
+	while condition(simplex, f, h) > eps:
+		h, l = highestLowestValue(simplex, f)
+
+		xc = centroid(simplex, h)
+		xr = (1 + alpha) * xc - alpha * simplex[h]
+
+		if f(xr) < f(simplex[l]):
+			xe = (1 - gamma) * xc + gamma * xr
+			if f(xe) < f(simplex[l]):
+				simplex[h] = xe
+			else:
+				simplex[h] = xr
+		else:
+			for i in range(len(simplex)):
+				if i == h: continue
+				if f(xr) > f(simplex[i]):
+					if f(xr) < f(simplex[h]):
+						simplex[h] = xr
+					xk = (1 - beta) * xc + beta * simplex[h]
+					if f(xk) < f(simplex[h]):
+						simplex[h] = xk
+					else:
+						for j in range(len(simplex)):
+							if j == h: continue
+							v = simplex[l] - simplex[j]
+							simplex[j] += v * sigma
+				else:
+					simplex[h] = xr
+
+	return xc
+
+def condition(simplex, f, h):
+	xc = centroid(simplex, h)
+	suma = 0
+	for i in range(len(simplex)):
+		suma += (f(simplex[i]) - f(xc)) ** 2
+
+	suma *= 1.0 / len(simplex)
+	return sqrt(suma)
+
+def centroid(simplex, h):
+	xc = Vector([0.0 for i in range(len(simplex[0]))])
+	for i in range(len(simplex)):
+		if i == h: continue
+		xc += simplex[i]
+
+	xc *= 1.0 / (len(simplex) - 1)
+	return xc
+
+def highestLowestValue(simplex, f):
+	maxIndex = 0
+	minIndex = 0
+	maxValue = f(simplex[maxIndex])
+	minValue = f(simplex[minIndex])
+
+	for i in range(len(simplex)):
+		fx = f(simplex[i])
+		if fx > maxValue:
+			maxValue = fx
+			maxIndex = i
+		if fx < minValue:
+			minValue= fx
+			minIndex = i
+
+	return maxIndex, minIndex
 
 def f(x):
 	return x[0]**2 - 6 * x[0] + 9
@@ -198,5 +260,22 @@ x0 = Vector([5.1, 1.1])
 x = hookeJeeves(x0, e, f4)
 print(x)
 
-nelderMead(Vector([1.3,1.4,1.5,1.6,1.7,1.8]), 2, 2, 2, 2, 2)
+# Nelder Mead
+print("============= Nelder Mead ============")
 
+x0 = Vector([-1.9, 2])
+x = nelderMead(x0, e, f1)
+print(x)
+
+x0 = Vector([0.1, 0.3])
+x = nelderMead(x0, e, f2)
+print(x)
+
+n = 5
+x0 = Vector.zeros(n)
+x = nelderMead(x0, e, f3)
+print(x)
+
+x0 = Vector([5.1, 1.1])
+x = nelderMead(x0, e, f4)
+print(x)

@@ -25,7 +25,8 @@ class Vector:
 
 	def __add__(self, other):
 		if len(self.array) != len(other):
-			print("Cannot add 2 arrays which are not the same dimensions")
+			print(len(self.array), len(other))
+			raise ValueError("Cannot add 2 arrays which are not the same dimensions")
 
 		result = []
 		for i in range(len(other)):
@@ -35,7 +36,8 @@ class Vector:
 
 	def __sub__(self, other):	
 		if len(self.array) != len(other):
-			print("Cannot sub 2 arrays which are not the same dimensions")
+			print(len(self.array), len(other))
+			raise ValueError("Cannot sub 2 arrays which are not the same dimensions, self.size=", len(self.array), " other.size",len(other))
 
 		result = []
 		for i in range(len(other)):
