@@ -95,7 +95,7 @@ def task5():
 	g3 = ImplicitConstraint(lambda x: x[1] - 1, "inequity")
 
 	f = F4()
-	x0 = Vector([0.0, 0.0])
+	x0 = Vector([5.0, 5.0])
 
 	xmin = mixedNoConstraints(f, x0, 1E-06, [g1, g2, g3])
 	print(xmin, " evaluation count: ", f.counter, " gradient count: ", f.backward_count)
