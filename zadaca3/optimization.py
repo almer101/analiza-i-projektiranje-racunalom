@@ -7,6 +7,7 @@ class Function:
 	def __init__(self, func):
 		self.func = func
 		self.counter = 0
+		self.backward_count = 0
 
 	def value(self, x):
 		self.counter += 1
@@ -18,9 +19,9 @@ def findUnimodalInterval(h, x, f):
 	m = x
 	step = 1
 
-	fm = f(m)
-	fl = f(l)
-	fr = f(r)
+	fm = f.value(m)
+	fl = f.value(l)
+	fr = f.value(r)
 
 	if fm < fl and fm < fr:
 		return (l, r)
@@ -32,14 +33,14 @@ def findUnimodalInterval(h, x, f):
 			fm = fr
 			r = x + h * step
 			step *= 2
-			fr = f(r)
+			fr = f.value(r)
 	else:
 		while fm > fl:
 			r = m
 			m = l
 			l = x - h * step
 			step *= 2
-			fl = f(l)
+			fl = f.value(l)
 
 	return (l, r)
 
@@ -54,8 +55,8 @@ def goldenCut(a, b, f, e):
 	c = b - k * (b - a)
 	d = a + k * (b - a)
 
-	fc = f(c)
-	fd = f(d)
+	fc = f.value(c)
+	fd = f.value(d)
 	diff = b - a
 
 	while diff.module() > e:
@@ -64,13 +65,13 @@ def goldenCut(a, b, f, e):
 			d = c
 			c = b - k *  (b - a)
 			fd = fc
-			fc = f(c)
+			fc = f.value(c)
 		else:
 			a = c
 			c = d
 			d = a + k * (b - a)
 			fc = fd
-			fd = f(d)
+			fd = f.value(d)
 		
 		diff = b - a
 
@@ -99,7 +100,7 @@ def hookeJeeves(x0, eps, f):
 
 	while dx[0] >= eps:
 		xn = explore(f, xp, dx)
-		if f(xn) < f(xb):
+		if f.value(xn) < f.value(xb):
 			xp = 2 * xn - xb
 			xb = xn
 		else:
@@ -111,12 +112,12 @@ def hookeJeeves(x0, eps, f):
 def explore(f, xp, dx):
 	x = xp.copy()
 	for i in range(len(x)):
-		P = f(x)
+		P = f.value(x)
 		x[i] += dx[i]
-		N = f(x)
+		N = f.value(x)
 		if N > P:
 			x[i] -= 2 * dx[i]
-			N = f(x)
+			N = f.value(x)
 			if N > P:
 				x[i] += dx[i]
 	return x

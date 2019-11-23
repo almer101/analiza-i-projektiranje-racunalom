@@ -45,6 +45,13 @@ class Vector:
 
 		return Vector(result)
 
+	def __neg__(self):
+		result = []
+		for i in range(len(self)):
+			result.append(-self.array[i])
+
+		return Vector(result)
+
 	def __mul__(self, other):
 		return self.mul(other)
 
