@@ -6,7 +6,7 @@ from constraints import *
 from math import log
 import random
 
-def gradient_descent(f, x0, e, line_search = False, eta = 0.001):
+def gradient_descent(f, x0, e, line_search = False, eta = 0.001, max_iter = 10000):
 	x = x0
 	grad = f.backward(x)
 	count = 0
@@ -14,36 +14,51 @@ def gradient_descent(f, x0, e, line_search = False, eta = 0.001):
 	last = x.copy()
 
 	while grad.module() > e:
+		max_iter -= 1
+		if max_iter <= 0:
+			print("Max iter exceeded... ")		
+			break
+
 		if line_search:
 			grad = grad * (1.0 / grad.module())
 			x = goldenCutWithStartingPoint(grad, x, f, 1E-06)
 		else:
 			x = x - grad * eta
 
-		if (x - last).module() < 1e-03:
+		if (x - last).module() < 1e-02:
 			count += 1
 			if count > 100: break
 		else:
 			count = 0
 
+		last = x.copy()
 		grad = f.backward(x)
 
 	return x
 
 def newton_raphson(f, x0, e, line_search = False, eta = 1.0):
 	x = x0
+	count = 0
 	hessian = f.hessian(x)
 	hessian = inverseOfMatrix(hessian)
 	grad = Matrica([f.backward(x).array])
 
 	dx = Matrica.matmul(grad, hessian)
 	dx = Vector(dx[0])
+	last = x.copy()
 
 	while dx.module() > e:
+		last = x.copy()
 		if line_search:
 			x = goldenCutWithStartingPoint(-dx, x, f, 1E-06)
 		else:
 			x = x - dx * eta
+
+		if abs(f.value(x) - f.value(last)) < 1e-06:
+			count += 1
+			if count > 100: break
+		else:
+			count = 0
 
 		hessian = inverseOfMatrix(f.hessian(x))
 		grad = Matrica([f.backward(x).array])
@@ -89,8 +104,8 @@ def box(f, x0, e, explicitConstraint, implicitConstraints, alpha = 1.3):
 		for i in range(len(explicitConstraint.xd)):
 			if xr[i] < explicitConstraint.xd[i]:
 				xr[i] = explicitConstraint.xd[i]
-			elif xr[i] > xg[i]:
-				xr[i] = xg[i]
+			elif xr[i] > explicitConstraint.xg[i]:
+				xr[i] = explicitConstraint.xg[i]
 
 		while not constraintsSatisfied(implicitConstraints, xr):
 			xr = 0.5 * (xr + xc)
@@ -126,7 +141,7 @@ def mixedNoConstraints(f, x0, e, implicitConstraints, t = 1.0):
 		t *= 10.0
 		u.t = t
 
-		if abs(f.value(x) - f.value(previous)) < e:
+		if abs(f.value(x) - f.value(previous)) < 1E-02:
 			count += 1
 			if count > 100: break
 		else:
@@ -189,7 +204,7 @@ def worst2points(points, f):
 
 if __name__ == "__main__":
 
-	f = F2()
+	f = F1()
 	x0 = Vector([-1.9, 2.0])
 
 	print("Gradient descent")
@@ -197,7 +212,7 @@ if __name__ == "__main__":
 	print(xmin)
 
 	print("\nNewton Raphson")
-	xmin = newton_raphson(f, x0, 1E-06, line_search = False)
+	xmin = newton_raphson(f, x0, 1E-06, line_search = True)
 	print(xmin)
 
 	g1 = ImplicitConstraint(lambda x: x[1] - x[0], "inequity")
@@ -211,6 +226,6 @@ if __name__ == "__main__":
 	print(xmin)
 
 	print("\nMixed no constraints")
-	xmin = mixedNoConstraints(f, x0, 1E-06, [g1, g2], t = 1E-06)
+	xmin = mixedNoConstraints(f, x0, 1E-06, [g1, g2])
 	print(xmin)
 
