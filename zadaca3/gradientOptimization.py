@@ -25,7 +25,7 @@ def gradient_descent(f, x0, e, line_search = False, eta = 0.001, max_iter = 1000
 		else:
 			x = x - grad * eta
 
-		if (x - last).module() < 1e-02:
+		if (x - last).module() < 1e-05:
 			count += 1
 			if count > 100: break
 		else:
@@ -132,6 +132,7 @@ def box(f, x0, e, explicitConstraint, implicitConstraints, alpha = 1.3):
 def mixedNoConstraints(f, x0, e, implicitConstraints, t = 1.0):	
 	count = 0
 	x = findInternatPoint(x0, implicitConstraints)
+	print("Internal point is =========> ", x)
 	previous = None
 	u = U(f, implicitConstraints, t)
 

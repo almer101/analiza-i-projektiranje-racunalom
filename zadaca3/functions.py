@@ -11,12 +11,12 @@ class F1(Function):
 
 	def backward(self, x):
 		self.backward_count += 1
-		dx1 = -400 * x[0] * (x[1]-x[0]**2)**2 + 2 * (1 + x[0])
+		dx1 = -400 * x[0] * (x[1]-x[0]**2) - 2 * (1 - x[0])
 		dx2 = 200 * (x[1] - x[0]**2)
 		return Vector([dx1, dx2])
 
 	def hessian(self, x):
-		mat = [[-400 * x[0] * x[1] + 1200 * x[0]**2 + 2, -400 * x[0]], [-400 * x[0], 200.0]]
+		mat = [[-400 * x[1] + 1200 * x[0]**2 + 2, -400 * x[0]], [-400 * x[0], 200.0]]
 		return Matrica(mat)
 
 class F2(Function):
