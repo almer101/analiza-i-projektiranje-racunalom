@@ -4,7 +4,7 @@ from math import log, ceil, floor
 
 class GA:
 
-	def __init__(self, f, lower_bound, upper_bound, population_size = 50, pm = 0.02, max_iter = 20000, accuracy=1e-03, display_type='float'):
+	def __init__(self, f, lower_bound, upper_bound, population_size = 50, pm = 0.02, max_iter = 20000, accuracy=1e-03, display_type='float', k = 3):
 		self.f = f
 		self.lower_bound = lower_bound
 		self.upper_bound = upper_bound
@@ -13,10 +13,11 @@ class GA:
 		self.max_iter = max_iter
 		self.accuracy = accuracy
 		self.display_type = display_type
-		self.bin_cross_type = 'uniform' # uniform one_break
+		self.bin_cross_type = 'one_break' # uniform one_break
 		self.bin_mutation_type = 'simple_bitwise'
-		self.float_cross_type = 'arithmetic' # heuristic arithmetic
+		self.float_cross_type = 'heuristic' # heuristic arithmetic
 		self.float_mutation_type = 'gaussian'
+		self.k = k
 
 	def run(self):
 		population = self.initialize_population()
@@ -28,13 +29,13 @@ class GA:
 		# print(population[0][0])
 		while count < self.max_iter:
 			count += 1
-			indexes = self.chooseThreeIndexes(population)
+			indexes = self.chooseIndexes(population, k = self.k)
 			worst, second_best, best = self.worstUnitIndex(indexes, population)
 			# elitism is not needed since it is implicitly built in
 
 			# TODO:
-				# - define 2 cross operators for bin
-				# - define 1 mutation operator for bin
+				# - define 2 cross operators for bin *
+				# - define 1 mutation operator for bin *
 				# - define 2 cross operators for flaot *
 				# - define 1 mutation operator for float *
 
@@ -54,14 +55,14 @@ class GA:
 			# if count % 1000 == 0:
 			# 	print("Iter ============ ", count, " ================")
 
-			if child[1] < 1e-08:
+			if child[1] < 1e-06:
 				return self.bestUnit(population)
 
 			if child[1] < population[worst][1]:
 				population[worst] = child
 
 
-		return self.bestUnit(population)
+		return self.bestUnit(population)#, count
 
 
 	def initialize_population(self):
@@ -101,9 +102,9 @@ class GA:
 			return self.f(unit)
 
 
-	def chooseThreeIndexes(self, population):
+	def chooseIndexes(self, population, k):
 		indexes = []
-		while len(indexes) < 3:
+		while len(indexes) < k:
 			n = randint(0, len(population) - 1)
 			if n not in indexes:
 				indexes.append(n)
@@ -265,12 +266,11 @@ class GA:
 
 if __name__ == "__main__":
 	
-	func = F7()
-	algorithm = GA(func.value, lower_bound = Vector([-5.0, -5.0]), upper_bound = Vector([15.0, 15.0]), display_type='bin')
+	func = F3()
+	algorithm = GA(func.value, lower_bound = Vector([-5.0, -5.0, -5.0, -5.0, -5.0]), upper_bound = Vector([15.0, 15.0, 15.0, 15.0, 15.0]), display_type='float')
 
 	bestUnit = algorithm.run()
-	print(bestUnit)
-	print(algorithm.decode(bestUnit[0]))
+	print(bestUnit[0])
 
 	print("======= Test ======")
 
