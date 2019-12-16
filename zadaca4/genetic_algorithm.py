@@ -122,7 +122,7 @@ class GA:
 	def worstUnitIndex(self, indexes, population):
 		indexes.sort(key = lambda x: population[x][1])
 		# print(population[indexes[0]][1], " must be < ", population[indexes[1]][1])
-		return indexes[2], indexes[1], indexes[0]
+		return indexes[-1], indexes[1], indexes[0]
 
 
 	def decode(self, value):
@@ -196,7 +196,7 @@ class GA:
 			 r = 0
 			 for j in range(N):
 			 	r <<= 1
-			 	r += 1 if GA.flip_coin(self.pm) else 0
+			 	r += 1 if GA.flip_coin(0.5) else 0
 
 			 R.append(r)
 
@@ -234,7 +234,7 @@ class GA:
 			 r = 0
 			 for j in range(N):
 			 	r <<= 1
-			 	r += 1 if GA.flip_coin(0.5) else 0
+			 	r += 1 if GA.flip_coin(self.pm) else 0
 
 			 R.append(r)
 
