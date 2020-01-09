@@ -26,13 +26,13 @@ def euler(A, B, r, x0, T, tmax, real_x = None):
 		x_dot_prev = x_dot(x_new, A, B, r, t)
 		x_new_true = real_x(t, x0)
 
-		diff = x_new_true - x_dot_prev
+		diff = x_new_true - x_new
 		for i in range(len(diff)):
 			diff[i][0] = abs(diff[i][0])
 
 		error += diff
 
-		if count % 10 == 0:
+		if count % 100 == 0:
 			print(f"for t={t - T} x is:\n{x_prev}")
 
 		x_prev = x_new
@@ -40,20 +40,193 @@ def euler(A, B, r, x0, T, tmax, real_x = None):
 	return x_prev, error
 
 
-def euler_reverse():
-	pass
+def euler_reverse(A, B, r, x0, T, tmax, real_x = None):
+	lambdas = solve_lambda(A)
+	t = 0.0
+	x_prev = x0.copy()
+	x_dot_prev = x_dot(x_prev, A, B, r, t)
 
-def trapeze():
-	pass
+	error = Matrica([[0.0],[0.0]])
 
-def runge_kutta_4():
-	pass
+	count = 0
 
-def pece2():
-	pass
+	while t <= tmax:
+		t += T
+		count += 1
 
-def pece():
-	pass
+		I = Matrica.identity(len(A))
+		inv = inverseOfMatrix(I - T * A)
+
+		second_part = x_prev
+		if B is not None and r is not None:
+			second_part += T * Matrica.matmul(B, r(t))
+
+		x_new = Matrica.matmul(inv, second_part)
+		x_dot_prev = x_dot(x_new, A, B, r, t)
+		x_new_true = real_x(t, x0)
+		
+		diff = x_new_true - x_new
+
+		for i in range(len(diff)):
+			diff[i][0] = abs(diff[i][0])
+
+		error += diff
+
+		if count % 100 == 1:
+			print(f"for t={t - T:.2f} x is:\n{x_prev}")
+
+		x_prev = x_new
+
+	return x_prev, error
+
+def trapeze(A, B, r, x0, T, tmax, real_x = None):
+	lambdas = solve_lambda(A)
+	t = 0.0
+	x_prev = x0.copy()
+	x_dot_prev = x_dot(x_prev, A, B, r, t)
+
+	error = Matrica([[0.0],[0.0]])
+
+	count = 0
+
+	while t <= tmax:
+		t += T
+		count += 1
+
+		I = Matrica.identity(len(A))
+		inv = inverseOfMatrix(I - (T * 0.5) * A)
+
+		second_part = Matrica.matmul(I + (T * 0.5) * A, x_prev)
+		if B is not None and r is not None:
+			second_part += T * 0.5 * Matrica.matmul(B, r(t))
+
+		x_new = Matrica.matmul(inv, second_part)
+		x_dot_prev = x_dot(x_new, A, B, r, t)
+		x_new_true = real_x(t, x0)
+		
+		diff = x_new_true - x_new
+
+		for i in range(len(diff)):
+			diff[i][0] = abs(diff[i][0])
+
+		error += diff
+
+		if count % 100 == 1:
+			print(f"for t={t - T:.2f} x is:\n{x_prev}")
+
+		x_prev = x_new
+
+	return x_prev, error
+
+def runge_kutta_4(A, B, r, x0, T, tmax, real_x = None):
+	t = 0.0
+	x_prev = x0.copy()
+
+	error = Matrica([[0.0],[0.0]])
+	count = 0
+
+	while t <= tmax:
+		count += 1
+
+		m1, m2, m3, m4 = calculate_ms(A, B, r, x_prev, t, T)
+		t += T
+
+		x_new = x_prev + T / 6.0 * (m1 + 2 * m2 + 2 * m3 + m4)
+		x_new_true = real_x(t, x0)
+		
+		diff = x_new_true - x_new
+
+		for i in range(len(diff)):
+			diff[i][0] = abs(diff[i][0])
+
+		error += diff
+
+		if count % 100 == 1:
+			print(f"for t={t - T:.2f} x is:\n{x_prev}")
+
+		x_prev = x_new
+
+	return x_prev, error
+
+def calculate_ms(A, B, r, x, t, T):
+	m1 = x_dot(x, A, B, r, t)
+	m2 = Matrica.matmul(A, x + T * 0.5 * m1)
+	if B is not None and r is not None:
+		 m2 += Matrica.matmul(B, r(t + T * 0.5))
+	
+	m3 = Matrica.matmul(A, x + T * 0.5 * m2)
+	if B is not None and r is not None:
+		 m3 += Matrica.matmul(B, r(t + T * 0.5))
+
+	m4 = Matrica.matmul(A, x + T * m3)
+	if B is not None and r is not None:
+		 m4 += Matrica.matmul(B, r(t + T))
+	
+	return m1, m2, m3, m4
+
+
+def pece(A, B, r, x0, T, tmax, real_x = None):
+	t = 0.0
+	x_prev = x0.copy()
+
+	error = Matrica([[0.0],[0.0]])
+	count = 0
+
+	while t <= tmax:
+		count += 1
+
+		x_new_0 = x_prev + T * x_dot(x_prev, A, B, r, t)
+		x_new = x_prev + T * x_dot(x_new_0, A, B, r, t + T)
+		x_new_true = real_x(t, x0)
+
+		t += T
+		
+		diff = x_new_true - x_new
+
+		for i in range(len(diff)):
+			diff[i][0] = abs(diff[i][0])
+
+		error += diff
+
+		if count % 100 == 1:
+			print(f"for t={t - T:.2f} x is:\n{x_prev}")
+
+		x_prev = x_new
+
+	return x_prev, error
+
+
+def pece2(A, B, r, x0, T, tmax, real_x = None):
+	t = 0.0
+	x_prev = x0.copy()
+
+	error = Matrica([[0.0],[0.0]])
+	count = 0
+
+	while t <= tmax:
+		count += 1
+
+		x_new_0 = x_prev + T * x_dot(x_prev, A, B, r, t)
+		x_new_1 = x_prev + 0.5 * T * (x_dot(x_prev, A, B, r, t) + x_dot(x_new_0, A, B, r, t + T))
+		x_new = x_prev + 0.5 * T * (x_dot(x_prev, A, B, r, t) + x_dot(x_new_1, A, B, r, t + T))
+		x_new_true = real_x(t, x0)
+
+		t += T
+		
+		diff = x_new_true - x_new
+
+		for i in range(len(diff)):
+			diff[i][0] = abs(diff[i][0])
+
+		error += diff
+
+		if count % 100 == 1:
+			print(f"for t={t - T:.2f} x is:\n{x_prev}")
+
+		x_prev = x_new
+
+	return x_prev, error
+
 
 def solve_lambda(A):
 	if len(A) == 1:
@@ -74,7 +247,6 @@ def analytic(t, x0=None):
 	return Matrica([[x0[0][0] * cos(t) + x0[1][0] * sin(t)], [x0[1][0] * cos(t) - x0[0][0] * sin(t)]])
 
 if __name__ == "__main__":
-	print("aa")
 	A = Matrica([[0, 1], [-1, 0]])
 	x = Matrica([[1], [1]])
 	print(solve_lambda(A))
@@ -88,9 +260,27 @@ if __name__ == "__main__":
 	print("##################")
 	A = Matrica([[0, 1], [-1, 0]])
 	x0 = Matrica([[1], [1]])
+	print("=========== EULER ===========")
 	x, error = euler(A, None, None, x0, T=0.01, tmax=10, real_x=analytic)
 	print(f"Error is : \n{error}")
+	
+	print("=========== EULER REVERSE ===========")
+	x, error = euler_reverse(A, None, None, x0, T=0.01, tmax=10, real_x=analytic)
+	print(f"Error is : \n{error}")
 
+	print("=========== TRAPEZE ===========")
+	x, error = trapeze(A, None, None, x0, T=0.01, tmax=10, real_x=analytic)
+	print(f"Error is : \n{error}")
 
+	print("=========== RUNGE-KUTTA 4 ===========")
+	x, error = runge_kutta_4(A, None, None, x0, T=0.01, tmax=10, real_x=analytic)
+	print(f"Error is : \n{error}")
 
+	print("=========== PECE ===========")
+	x, error = pece(A, None, None, x0, T=0.01, tmax=10, real_x=analytic)
+	print(f"Error is : \n{error}")
+
+	print("=========== PE(CE)^2 ===========")
+	x, error = pece2(A, None, None, x0, T=0.01, tmax=10, real_x=analytic)
+	print(f"Error is : \n{error}")
 

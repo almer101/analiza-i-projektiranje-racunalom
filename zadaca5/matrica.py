@@ -94,6 +94,15 @@ class Matrica:
 	def __rmul__(self, other):
 		return self.mul(other)
 
+	def identity(n):
+		res = []
+		for i in range(n):
+			res.append([])
+			for j in range(n):
+				res[i].append(1 if i == j else 0)
+
+		return Matrica(res)
+
 	def mul(self, other):
 		res = []
 		for i in range(len(self.mat)):
