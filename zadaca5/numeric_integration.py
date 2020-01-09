@@ -250,6 +250,11 @@ def solve_quadratic(coefficients):
 def analytic(t, x0=None):
 	return Matrica([[x0[0][0] * cos(t) + x0[1][0] * sin(t)], [x0[1][0] * cos(t) - x0[0][0] * sin(t)]])
 
+# TODO:
+	# - solve tasks from pdf
+	# - extract while loop to another method or sth to avoid code copying
+
+
 if __name__ == "__main__":
 	A = Matrica([[0, 1], [-1, 0]])
 	x = Matrica([[1], [1]])
