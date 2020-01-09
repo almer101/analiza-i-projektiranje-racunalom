@@ -176,8 +176,12 @@ def pece(A, B, r, x0, T, tmax, real_x = None):
 		count += 1
 
 		x_new_0 = x_prev + T * x_dot(x_prev, A, B, r, t)
-		x_new = x_prev + T * x_dot(x_new_0, A, B, r, t + T)
-		x_new_true = real_x(t, x0)
+		x_new = x_prev + 0.5 * T * (x_dot(x_prev, A, B, r, t) + x_dot(x_new_0, A, B, r, t + T))
+		x_new_true = real_x(t + T, x0)
+
+		if count == 1:
+			print(f"x_kapa je \n", x_new_0)
+			print(f"x je \n", x_new_0)
 
 		t += T
 		
@@ -207,9 +211,9 @@ def pece2(A, B, r, x0, T, tmax, real_x = None):
 		count += 1
 
 		x_new_0 = x_prev + T * x_dot(x_prev, A, B, r, t)
-		x_new_1 = x_prev + 0.5 * T * (x_dot(x_prev, A, B, r, t) + x_dot(x_new_0, A, B, r, t + T))
-		x_new = x_prev + 0.5 * T * (x_dot(x_prev, A, B, r, t) + x_dot(x_new_1, A, B, r, t + T))
-		x_new_true = real_x(t, x0)
+		x_new_1 = x_prev + T * x_dot(x_new_0, A, B, r, t + T)
+		x_new = x_prev + T * x_dot(x_new_1, A, B, r, t + T)
+		x_new_true = real_x(t + T, x0)
 
 		t += T
 		
