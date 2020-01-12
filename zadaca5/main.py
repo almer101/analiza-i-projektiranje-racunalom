@@ -15,8 +15,9 @@ def task1():
 
 	for name in names:
 		xs, error = integrate(A, None, None, x0, T=T, tmax=tmax, method=name, real_x=analytic1)
+		print(f"Error is : \n{error}")
 		plot_xs(ts, xs, title=name)
-
+		
 
 def task2():
 	names = ['euler', 'euler_reverse', 'trapeze', 'runge_kutta_4', 'pece', 'pece2']
@@ -30,7 +31,9 @@ def task2():
 
 	for name in names:
 		xs, error = integrate(A, None, None, x0, T=T, tmax=tmax, method=name, real_x=analytic1)
+		print(f"Error is : \n{error}")
 		plot_xs(ts, xs, title=name)
+		
 
 def task3():
 	names = ['euler', 'euler_reverse', 'trapeze', 'runge_kutta_4', 'pece', 'pece2']
@@ -45,7 +48,9 @@ def task3():
 
 	for name in names:
 		xs, error = integrate(A, B, r3, x0, T=T, tmax=tmax, method=name, real_x=analytic1)
+		print(f"Error is : \n{error}")
 		plot_xs(ts, xs, title=name)
+		
 
 def r3(t):
 	return Matrica([[1], [1]])
@@ -63,6 +68,7 @@ def task4():
 
 	for name in names:
 		xs, error = integrate(A, B, r3, x0, T=T, tmax=tmax, method=name, real_x=analytic1)
+		print(f"Error is : \n{error}")
 		plot_xs(ts, xs, title=name)
 
 
